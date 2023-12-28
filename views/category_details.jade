@@ -1,0 +1,12 @@
+extends layout 
+block content 
+    h1= title+ ': '+category.name
+    p #{category.description}
+    hr
+    h3 Products:
+    if allProducts.length 
+        ul 
+            each product in allProducts
+                li 
+                    h5 
+                        a(href=product.url) #{product.name}

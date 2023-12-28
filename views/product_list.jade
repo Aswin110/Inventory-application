@@ -1,0 +1,12 @@
+extends layout 
+block content
+    h1= title
+    if product_list.length 
+     ul 
+        each product in product_list 
+            li 
+                h2 
+                    a(href=product.url) #{product.name}
+                p #{product.description} 
+                p #[strong Category - #{product.category.name}]
+            hr

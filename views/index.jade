@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title}
+
+  h2 Dynamic contents 
+  p The Inventory Application has following contents: 
+  ul 
+    li #[strong Categories:] !{category_count}
+    li #[strong Products:] !{product_count}
+

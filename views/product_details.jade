@@ -1,0 +1,12 @@
+extends layout 
+block content 
+
+    h1= title
+    hr
+    h2= product.name
+    p Description: #{product.description}
+    p Category: 
+        a(href=product.category.url) #{product.category.name}
+    p Price: ₹#{product.price} 
+    p Stock available: #{product.stock}
+    
