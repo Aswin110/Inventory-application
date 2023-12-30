@@ -9,4 +9,8 @@ block content
         a(href=product.category.url) #{product.category.name}
     p Price: ₹#{product.price} 
     p Stock available: #{product.stock}
+
+    hr
+    p
+        a(href=product.url+'/delete') Delete product
     

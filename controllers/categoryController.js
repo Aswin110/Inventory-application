@@ -54,9 +54,43 @@ exports.category_create_get = asyncHandler(async (req, res, next)=> {
 	res.render('category_form', {title: 'Create category'});
 });
 
-exports.category_create_post = asyncHandler(async (req, res, next)=> {
-	res.send('post create form for category POST');
-});
+exports.category_create_post = [
+	body('name' ,'Name must contain at least 3 characters')
+		.trim()
+		.isLength({min:3})
+		.escape(),
+	body('description', 'Description must contain at least 3 characters')
+		.trim()
+		.isLength({min:3})
+		.escape(),
+	
+	asyncHandler(async (req, res, next)=> {
+		const errors = validationResult(req);
+		const category = new Category({
+			name: req.body.name,
+			description: req.body.description,
+		});
+
+		if (!errors.isEmpty()) {
+			res.render('category_form', {
+				title: 'Create category',
+				category: category,
+				errors: errors.array(),
+			});
+			return;
+		} else {
+			const categoryExists = await Category.findOne({name:req.body.name})
+				.collation({ locale:'en', strength:2 })
+				.exec();
+			if (categoryExists) {
+				res.redirect(categoryExists.url);
+			} else {
+				await category.save();
+				res.redirect(category.url);
+			}
+		}
+	})
+];
 
 exports.category_update_get = asyncHandler(async (req, res, next)=> {
 	res.send('display update form for category GET');
@@ -67,9 +101,37 @@ exports.category_update_post = asyncHandler(async (req, res, next)=> {
 });
 
 exports.category_delete_get = asyncHandler(async (req, res, next)=> {
-	res.send('display delete form for category GET');
+	const [ category, categoryInProduct ] = await Promise.all([
+		Category.findById(req.params.id).exec(),
+		Product.find({category: req.params.id}, 'name description').exec(),
+	]);
+
+	if ( category === null ) {
+		res.redirect('/catalog/categories');
+	}
+
+	res.render('category_delete',{
+		title:'Delete category',
+		category: category,
+		category_product: categoryInProduct,
+	});
 });
 
 exports.category_delete_post = asyncHandler(async (req, res, next)=> {
-	res.send('post delete form for category POST');
+	const [ category, categoryInProduct ] = await Promise.all([
+		Category.findById(req.params.id).exec(),
+		Product.find({category: req.params.id}, 'name description').exec(),
+	]);
+
+	if ( categoryInProduct.length > 0 ) {
+		res.render('category_delete',{
+			title:'Delete category',
+			category: category,
+			category_product: categoryInProduct,
+		});
+		return;
+	} else {
+		await Category.findByIdAndDelete(req.body.categoryid);
+		res.redirect('/catalog/categories');
+	}
 });
