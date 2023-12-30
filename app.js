@@ -5,9 +5,10 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+dotenv.config();
 
 mongoose.set('strictQuery', false);
-const dev_db_url = 'mongodb+srv://aswinashok:a2bn1povilk@locallibrary.uudclkp.mongodb.net/inventory_application?retryWrites=true&w=majority';
 
 const mongoDB = process.env.MONGODB_URI || dev_db_url;
 
