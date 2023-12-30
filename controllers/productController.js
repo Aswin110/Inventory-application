@@ -81,12 +81,76 @@ exports.product_create_post = [
 ];
 
 exports.product_update_get = asyncHandler(async (req, res, next)=> {
-	res.send('display update form for product GET');
+	const [product, allCategory] = await Promise.all([
+		Product.findById(req.params.id).populate('category').exec(),
+		Category.find().sort({name:1}).exec(),
+	]);
+
+	if (product === null) {
+		const err = new Error('Product not found');
+		err.status = 404;
+		return next(err);
+	}
+
+	res.render('product_form',{
+		title:'Update product',
+		product: product,
+		categories: allCategory,
+	});
 });
 
-exports.product_update_post = asyncHandler(async (req, res, next)=> {
-	res.send('post update form for product POST');
-});
+exports.product_update_post = [
+	body('name', 'Name must be specified.')
+		.trim()
+		.isLength({ min:1 })
+		.escape(),
+	body('description', 'Description must not be empty.')
+		.trim()
+		.isLength({ min:1 })
+		.escape(),
+	body('category', 'Category must not be empty.')
+		.trim()
+		.isLength({ min:1 })
+		.escape(),
+	body('price', 'Price must be a valid number.')
+		.trim()
+		.isNumeric()
+		.escape(),
+	body('stock', 'Stock must be a valid number.')
+		.trim()
+		.isNumeric()
+		.escape(),
+	
+	asyncHandler(async (req, res, next)=> {
+		const errors = validationResult(req);
+		const product = new Product({
+			name: req.body.name,
+			description: req.body.description,
+			category: req.body.category,
+			price: req.body.price,
+			stock: req.body.stock,
+			_id: req.params.id,
+		});
+
+		if (!errors.isEmpty()) {
+			const [product, allCategory] = await Promise.all([
+				Product.findById(req.params.id).populate('category').exec(),
+				Category.find().sort({name:1}).exec(),
+			]);
+
+			res.render('product_form',{
+				title:'Update product',
+				product: product,
+				categories: allCategory,
+				errors: errors.array(),
+			});
+			return;
+		} else {
+			const updatedProduct = await Product.findByIdAndUpdate(req.params.id, product, {});
+			res.redirect(updatedProduct.url);
+		}
+	})
+];
 
 exports.product_delete_get = asyncHandler(async (req, res, next)=> {
 	const product= await Product.findById(req.params.id).populate('category').exec();
